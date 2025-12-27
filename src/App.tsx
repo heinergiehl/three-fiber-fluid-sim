@@ -1,8 +1,19 @@
+import { useCallback, useState } from 'react';
 import { FluidSimulationCanvas } from './components/FluidSimulationCanvas';
+import FluidDevControls from './components/FluidDevControls';
+import { defaultFluidConfig, type FluidConfig } from './fluid/config';
+
 const App = () => {
+  const [config, setConfig] = useState<FluidConfig>(defaultFluidConfig);
+
+  const handleConfigChange = useCallback((partial: Partial<FluidConfig>) => {
+    setConfig((prev) => ({ ...prev, ...partial }));
+  }, []);
+
   return (
     <div className="viewport">
-      <FluidSimulationCanvas />
+      <FluidSimulationCanvas config={config} />
+      {import.meta.env.DEV ? <FluidDevControls config={config} onChange={handleConfigChange} /> : null}
 
       <div className="overlay">
         <div className="overlay__heading">

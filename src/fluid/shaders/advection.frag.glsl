@@ -6,18 +6,15 @@ varying vec2 vUv;
 uniform sampler2D uVelocity;
 uniform sampler2D uSource;
 uniform vec2 texelSize;
+uniform vec2 dyeTexelSize;
 uniform float dt;
 uniform float dissipation;
 
-vec2 reflectUV(vec2 uv) {
-  uv = abs(uv);
-  uv = 1.0 - abs(1.0 - uv);
-  return uv;
-}
-
 void main() {
-  vec2 velocity = texture2D(uVelocity, vUv).xy;
-  vec2 coord = vUv - dt * velocity * texelSize;
-  vec4 result = texture2D(uSource, reflectUV(coord));
-  gl_FragColor = dissipation * result;
+    // Matches Pavel's linear-filter path: single tap with hardware bilerp.
+    vec2 coord = vUv - dt * texture2D(uVelocity, vUv).xy * texelSize;
+    vec4 result = texture2D(uSource, coord);
+    // Exponential decay so slider changes have a visible effect.
+    float decay = exp(-dissipation * dt);
+    gl_FragColor = result * decay;
 }

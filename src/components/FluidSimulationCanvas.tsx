@@ -2,11 +2,17 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { useEffect, useMemo, useRef } from 'react';
 import type { CSSProperties } from 'react';
 import { FluidEngine } from '../fluid/FluidEngine';
-import { defaultFluidConfig, FluidConfig } from '../fluid/config';
+import { defaultFluidConfig, type FluidConfig } from '../fluid/config';
+import StatsPanel from '../stats/StatsPanel';
 
 function FluidController({ config }: { config: FluidConfig }) {
   const { gl, size } = useThree();
   const engineRef = useRef<FluidEngine | null>(null);
+
+  useEffect(() => {
+    gl.autoClear = false;
+    gl.setClearColor(0x000000, 1);
+  }, [gl]);
 
   useEffect(() => {
     const engine = new FluidEngine(gl, config);
@@ -15,7 +21,13 @@ function FluidController({ config }: { config: FluidConfig }) {
       engine.dispose();
       engineRef.current = null;
     };
-  }, [gl, config]);
+  }, [gl]);
+
+  useEffect(() => {
+    const engine = engineRef.current;
+    if (!engine) return;
+    engine.setConfig(config);
+  }, [config]);
 
   useEffect(() => {
     const engine = engineRef.current;
@@ -97,6 +109,7 @@ export function FluidSimulationCanvas({
       gl={{ antialias: false, alpha: false, depth: false, stencil: false }}
       dpr={[1, 2]}
     >
+      {import.meta.env.DEV ? <StatsPanel /> : null}
       <FluidController config={mergedConfig} />
     </Canvas>
   );
